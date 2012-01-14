@@ -25,9 +25,11 @@ namespace NetBash.Database
             var p = new OptionSet() {
                 { "e|execute", "Executes an sql query",
                     v => _command = Command.Execute },
-                { "i|info", "Provides database information",
+                { "i|info", "Shows database information",
                     v => _command = Command.Info },
                 { "t|tables", "Lists tables and space used",
+                    v => _command = Command.Tables },
+                { "c|clear", "Removes all rows from database",
                     v => _command = Command.Tables },
                 { "c=|conn=", "name of connection string to use (defaults to first found)",
                   v => _connectionName = v },
@@ -59,10 +61,13 @@ namespace NetBash.Database
                     return execute(query);
 
                 case Command.Info:
-                    return getInfo();
+                    return executeEmbedded("DbInfo.sql");
 
                 case Command.Tables:
-                    return getTableInfo();
+                    return executeEmbedded("TableInfo.sql");
+
+                case Command.Clear:
+                    return clearRecords();
 
                 case Command.Help:
                 default:
@@ -70,18 +75,15 @@ namespace NetBash.Database
             }
         }
 
-        private string getInfo()
-        { 
-            var connString = getConnectionString();
-            var ssb = new SqlConnectionStringBuilder(connString.ConnectionString);
-            var db = ssb.InitialCatalog;
-            
-            return query("sp_helpdb " + db).ToConsoleTable();
+        private string clearRecords()
+        {
+            executeEmbedded("ClearRecords.sql");
+            return "All records cleared check with \"sql -t\"";
         }
 
-        private string getTableInfo()
+        private string executeEmbedded(string filename)
         {
-            var q = EmbeddedResourceHelper.GetResource("TableInfo.sql");
+            var q = EmbeddedResourceHelper.GetResource(filename);
             return query(q).ToConsoleTable();
         }
 
@@ -181,6 +183,7 @@ namespace NetBash.Database
             Execute,
             Info, 
             Tables,
+            Clear,
             Help
         }
     }
