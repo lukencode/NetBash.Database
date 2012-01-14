@@ -1,0 +1,5 @@
+﻿<configuration>
+	<connectionStrings>
+		<add name="NorthwindDB" connectionString="data source=.\SQLEXPRESS;Integrated Security=SSPI;AttachDBFilename=|DataDirectory|Northwind.mdf;User Instance=true" providerName="System.Data.SqlClient" />
+	</connectionStrings>
+</configuration>
