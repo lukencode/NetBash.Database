@@ -13,14 +13,14 @@ Simple commands to query your database with NetBash. ConnectionString name can b
                                    first found)
       -h, --help                 show this list of options
           
-Basic usage:
+**Basic usage:**
 
     sql -e "select * from products"
     
-Show All Tables
+**Show All Tables:**
 
     sql -t [optional-filter]
     
-Show Schema
+**Show Schema:**
 
     sql -t [table-name]
