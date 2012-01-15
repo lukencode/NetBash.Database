@@ -25,12 +25,14 @@ namespace NetBash.Database
             var p = new OptionSet() {
                 { "e|execute", "Executes an sql query",
                     v => _command = Command.Execute },
-                { "i|info", "Shows database information",
-                    v => _command = Command.Info },
-                { "t|tables", "Lists tables and space used",
+                //{ "i|info", "Shows database information",
+                //    v => _command = Command.Info },
+                { "t|tables", "Lists tables and space used optional filter on provided table name",
                     v => _command = Command.Tables },
-                { "c|clear", "Removes all rows from database",
-                    v => _command = Command.Tables },
+                { "s|schema", "Display table schema for the provided table name",
+                    v => _command = Command.Schema },
+                { "clear", "Removes all rows from database",
+                    v => _command = Command.Clear },
                 { "c=|conn=", "name of connection string to use (defaults to first found)",
                   v => _connectionName = v },
                 { "h|help", "show this list of options",
@@ -64,7 +66,10 @@ namespace NetBash.Database
                     return executeEmbedded("DbInfo.sql");
 
                 case Command.Tables:
-                    return executeEmbedded("TableInfo.sql");
+                    return getTables(query);
+
+                case Command.Schema:
+                    return showSchema(query);
 
                 case Command.Clear:
                     return clearRecords();
@@ -72,6 +77,54 @@ namespace NetBash.Database
                 case Command.Help:
                 default:
                     return showHelp(p);
+            }
+        }
+
+        private string getTables(string table)
+        {
+            var q = EmbeddedResourceHelper.GetResource("TableInfo.sql");
+
+            using (var conn = openConnection())
+            {
+                var cmd = new SqlCommand(q, conn);
+
+                if(!string.IsNullOrWhiteSpace(table))
+                    cmd.Parameters.Add(new SqlParameter("TableQuery", table));
+                else
+                    cmd.Parameters.Add(new SqlParameter("TableQuery", DBNull.Value));
+
+                var da = new SqlDataAdapter();
+                da.SelectCommand = cmd;
+
+                var dt = new DataTable();
+                da.Fill(dt);
+
+                return dt.ToConsoleTable();
+            }
+        }
+
+        private string showSchema(string table)
+        {
+            if (string.IsNullOrWhiteSpace(table))
+                throw new ApplicationException("Please provide a table name eg. sql -t \"Products\"");
+
+            //sql inject your own db, see if i care
+            var q = string.Format("exec sp_help '{0}'", table);
+
+            using (var conn = openConnection())
+            {
+                var cmd = new SqlCommand(q, conn);
+
+                var da = new SqlDataAdapter();
+                da.SelectCommand = cmd;
+                
+                var ds = new DataSet();
+                da.Fill(ds);
+
+                if (ds.Tables.Count == 0)
+                    throw new ApplicationException(string.Format("Table '{0}' not found", table));
+
+                return ds.Tables[1].ToConsoleTable();
             }
         }
 
@@ -111,7 +164,7 @@ namespace NetBash.Database
 
         private DataTable query(string q)
         {
-            using (var conn = OpenConnection())
+            using (var conn = openConnection())
             {
                 var cmd = new SqlCommand(q, conn);
 
@@ -129,7 +182,7 @@ namespace NetBash.Database
         {
             var result = 0;
 
-            using (var conn = OpenConnection())
+            using (var conn = openConnection())
             {
                 var cmd = new SqlCommand(q, conn);
                 result = cmd.ExecuteNonQuery();
@@ -138,7 +191,7 @@ namespace NetBash.Database
             return result;
         }
 
-        private SqlConnection OpenConnection() 
+        private SqlConnection openConnection() 
         {
             var connString = getConnectionString();
 
@@ -183,6 +236,7 @@ namespace NetBash.Database
             Execute,
             Info, 
             Tables,
+            Schema,
             Clear,
             Help
         }

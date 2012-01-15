@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <version>1.0.0</version>
+    <authors>lukencode</authors>
+    <owners />
+    <projectUrl>https://github.com/lukencode/NetBash.Database</projectUrl>
+    <dependencies>
+      <dependency id="NDesk.Options" version="0.2.1" />
+      <dependency id="NetBash" version="0.3.0.0" />
+    </dependencies>
+    <id>NetBash.Database</id>
+    <title>NetBash.Database</title>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Simple commands to query your database with NetBash.</description>
+  </metadata>
+  <files>
+    <file src="Netbash.Database\bin\Release\Netbash.Database.dll" target="lib\net40\Netbash.Database.dll" />
+  </files>
+</package>

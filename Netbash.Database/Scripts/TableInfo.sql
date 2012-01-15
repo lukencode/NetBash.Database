@@ -14,6 +14,8 @@ SELECT @cmdstr = 'sp_msforeachtable ''sp_spaceused "?"'''
 --Populate Tempoary Table
 INSERT INTO #TempTable EXEC(@cmdstr)
 --Determine sorting method
-SELECT * FROM #TempTable ORDER BY Table_Name
+SELECT * FROM #TempTable 
+WHERE @TableQuery IS NULL OR [Table_Name] LIKE '%' + @TableQuery + '%'
+ORDER BY Table_Name 
 --Delete Temporay Table
 DROP TABLE #TempTable

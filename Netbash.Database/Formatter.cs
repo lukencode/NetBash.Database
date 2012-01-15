@@ -26,7 +26,8 @@ namespace NetBash.Database
 
                 if (!isEmpty)
                 {
-                    max = rows.Max(r => r.Field<object>(c.ColumnName).ToString().Length);
+                    max = rows.Where(r => r.Field<object>(c.ColumnName) != null)
+                              .Max(r => r.Field<object>(c.ColumnName).ToString().Length);
 
                     if (c.ColumnName.Length > max)
                         max = c.ColumnName.Length;
