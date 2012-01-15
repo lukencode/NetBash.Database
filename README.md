@@ -1,3 +1,5 @@
+Simple commands to query your database with NetBash. ConnectionString name can be set with --conn=[yourdb] if it isnt set it will default to the first one found.
+    
     Usage: sql [OPTIONS] [QUERY]
     Execute sql on your database using NetBash
     
