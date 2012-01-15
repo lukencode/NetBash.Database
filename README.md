@@ -1,3 +1,5 @@
+Download from NuGet - **PM> Install-Package NetBash.Database**
+
 Simple commands to query your database with NetBash. ConnectionString name can be set with --conn=[yourdb] if it isnt set it will default to the first one found.
     
     Usage: sql [OPTIONS] [QUERY]
