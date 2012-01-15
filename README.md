@@ -18,7 +18,9 @@ Basic usage:
     sql -e "select * from products"
     
 Show All Tables
+
     sql -t [optional-filter]
     
 Show Schema
+
     sql -t [table-name]
