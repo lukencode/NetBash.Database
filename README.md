@@ -12,4 +12,5 @@ Simple commands to query your database with NetBash. ConnectionString name can b
       -h, --help                 show this list of options
       
 Example usage:
-    : sql -e "select * from products"
+
+    sql -e "select * from products"
