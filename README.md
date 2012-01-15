@@ -5,12 +5,10 @@ Simple commands to query your database with NetBash. ConnectionString name can b
     
     Options:
       -e, --execute              Executes an sql query
-      -t, --tables               Lists tables and space used optional filter on 
-                                   provided table name
+      -t, --tables               Lists tables and space used optional filter on  provided table name
       -s, --schema               Display table schema for the provided table name
           --clear                Removes all rows from database
-      -c, --conn=VALUE           name of connection string to use (defaults to 
-                                   first found)
+      -c, --conn=VALUE           name of connection string to use (defaults to first found)
       -h, --help                 show this list of options
           
 **Basic usage:**
