@@ -26,11 +26,18 @@ namespace NetBash.Database
 
                 if (!isEmpty)
                 {
-                    max = rows.Where(r => r.Field<object>(c.ColumnName) != null)
-                              .Max(r => r.Field<object>(c.ColumnName).ToString().Length);
+                    if (rows.Any(r => r.Field<object>(c.ColumnName) != null))
+                    {
+                        max = rows.Where(r => r.Field<object>(c.ColumnName) != null)
+                            .Max(r => r.Field<object>(c.ColumnName).ToString().Length);
 
-                    if (c.ColumnName.Length > max)
+                        if (c.ColumnName.Length > max)
+                            max = c.ColumnName.Length;
+                    }
+                    else
+                    {
                         max = c.ColumnName.Length;
+                    }
                 }
 
                 //Add some space
