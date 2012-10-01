@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.EntityClient;
 using System.Linq;
 using System.Text;
 using NetBash;
@@ -27,14 +28,25 @@ namespace NetBash.Database
                     v => _command = Command.Execute },
                 //{ "i|info", "Shows database information",
                 //    v => _command = Command.Info },
+
                 { "t|tables", "Lists tables and space used optional filter on provided table name",
                     v => _command = Command.Tables },
+
                 { "s|schema", "Display table schema for the provided table name",
                     v => _command = Command.Schema },
+
                 { "clear", "Removes all rows from database",
                     v => _command = Command.Clear },
-                { "c=|conn=", "name of connection string to use (defaults to first found)",
+
+                { "cn|connectionstring","Returns the connectionstring name that will be used", 
+                    v=>_command=Command.ConnectionStringName},
+
+                { "lcn|listcn","Shows all connectionstring names found",
+                    v=>_command = Command.ListConnectionStrings},
+
+                { "c=|conn=", "Name of connection string to use (defaults to first found)",
                   v => _connectionName = v },
+
                 { "h|help", "show this list of options",
                     v => _command = Command.Help }
             };
@@ -57,7 +69,7 @@ namespace NetBash.Database
             if (_command == Command.Execute && string.IsNullOrWhiteSpace(query))
                 throw new ArgumentNullException("A query must be provided");
 
-            switch(_command)
+            switch (_command)
             {
                 case Command.Execute:
                     return execute(query);
@@ -74,6 +86,12 @@ namespace NetBash.Database
                 case Command.Clear:
                     return clearRecords();
 
+                case Command.ConnectionStringName:
+                    return getConnectionStringName();
+
+                case Command.ListConnectionStrings:
+                    return getConnectionStringNames();
+
                 case Command.Help:
                 default:
                     return showHelp(p);
@@ -88,7 +106,7 @@ namespace NetBash.Database
             {
                 var cmd = new SqlCommand(q, conn);
 
-                if(!string.IsNullOrWhiteSpace(table))
+                if (!string.IsNullOrWhiteSpace(table))
                     cmd.Parameters.Add(new SqlParameter("TableQuery", table));
                 else
                     cmd.Parameters.Add(new SqlParameter("TableQuery", DBNull.Value));
@@ -117,7 +135,7 @@ namespace NetBash.Database
 
                 var da = new SqlDataAdapter();
                 da.SelectCommand = cmd;
-                
+
                 var ds = new DataSet();
                 da.Fill(ds);
 
@@ -191,26 +209,61 @@ namespace NetBash.Database
             return result;
         }
 
-        private SqlConnection openConnection() 
+        private SqlConnection openConnection()
         {
             var connString = getConnectionString();
 
-            var connection = new SqlConnection(connString.ConnectionString);
-            connection.Open();
+            var connection = new SqlConnection(connString);
 
             return connection;
         }
 
-        private ConnectionStringSettings getConnectionString()
+        private string getConnectionString()
         {
-            var connString = ConfigurationManager.ConnectionStrings[_connectionName];
+            var connString = ConfigurationManager.ConnectionStrings[_connectionName] ??
+                             ConfigurationManager.ConnectionStrings[0];
 
-            if (connString == null)
+            string connectionString = CheckForEntityFrameworkConnectionString(connString.ConnectionString);
+            return connectionString;
+        }
+
+        private string getConnectionStringName()
+        {
+            if (string.IsNullOrEmpty(_connectionName))
             {
-                connString = ConfigurationManager.ConnectionStrings[0];
+                try
+                {
+                    return ConfigurationManager.ConnectionStrings[0].Name;
+                }
+                catch (Exception ex)
+                {
+                    return "No connectionstrings defined";
+                }
+            }
+            return _connectionName;
+        }
+
+        private string getConnectionStringNames()
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < ConfigurationManager.ConnectionStrings.Count; i++)
+            {
+                sb.AppendLine(ConfigurationManager.ConnectionStrings[i].Name);
+            }
+            return sb.ToString();
+        }
+
+        private string CheckForEntityFrameworkConnectionString(string connString)
+        {
+            if (connString.Contains("provider connection string="))
+            {
+                //Parse connectionstring from Entity connectionstring
+                var entityBuilder = new EntityConnectionStringBuilder(connString);
+                return entityBuilder.ProviderConnectionString;
             }
             return connString;
         }
+
 
         private string showHelp(OptionSet p)
         {
@@ -234,11 +287,13 @@ namespace NetBash.Database
         private enum Command
         {
             Execute,
-            Info, 
+            Info,
             Tables,
             Schema,
             Clear,
-            Help
+            Help,
+            ConnectionStringName,
+            ListConnectionStrings
         }
     }
 }
